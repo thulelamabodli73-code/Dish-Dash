@@ -1,45 +1,67 @@
 function startCooking() {
   alert("Welcome to Dish Dash! 🍳 Let's start cooking!");
 }
-function startCooking() {
-  alert("Welcome to Dish Dash! 🍳 Let's start cooking!");
-}
 
+async function findRecipe() {
+  const ingredient = document.getElementById("ingredientInput").value.trim();
+  const result = document.getElementById("recipeResults");
 
-const recipes = [
-  {
-    name: "Chicken Fried Rice 🍗",
-    ingredients: ["chicken", "rice", "onion"],
-    steps: "Cook the rice, fry the chicken and onion, then mix everything together."
-  },
-  {
-    name: "Cheesy Omelette 🥚",
-    ingredients: ["egg", "cheese", "onion"],
-    steps: "Beat the eggs, add cheese and onion, then cook in a pan."
-  },
-  {
-    name: "Tomato Pasta 🍝",
-    ingredients: ["pasta", "tomato", "onion"],
-    steps: "Boil pasta, make tomato sauce, then combine."
+  if (!ingredient) {
+    result.innerHTML = "<p>Please enter an ingredient.</p>";
+    return;
   }
-];
 
+  result.innerHTML = "<p>🔍 Searching for recipes...</p>";
 
-function findRecipe() {
-  let ingredients = document.getElementById("ingredientInput").value.toLowerCase();
+  try {
+    const response = await fetch(
+      `https://www.themealdb.com/api/json/v1/1/filter.php?i=${encodeURIComponent(ingredient)}`
+    );
 
-  let matches = recipes.filter(recipe =>
-    recipe.ingredients.some(item => ingredients.includes(item))
-  );
+    const data = await response.json();
 
-  let result = document.getElementById("recipeResults");
+    if (!data.meals) {
+      result.innerHTML = "<p>😢 No recipes found for that ingredient.</p>";
+      return;
+    }
 
-  if (matches.length === 0) {
-    result.innerHTML = "😢 No recipe found. Try adding more ingredients.";
-  } else {
-    result.innerHTML = matches.map(recipe => `
-      <h3>${recipe.name}</h3>
-      <p>${recipe.steps}</p>
-    `).join("");
+    result.innerHTML = "";
+
+    for (const meal of data.meals) {
+      const detailsResponse = await fetch(
+        `https://www.themealdb.com/api/json/v1/1/lookup.php?i=${meal.idMeal}`
+      );
+
+      const detailsData = await detailsResponse.json();
+      const recipe = detailsData.meals[0];
+
+      let ingredientsList = "";
+
+      for (let i = 1; i <= 20; i++) {
+        const ing = recipe["strIngredient" + i];
+        const measure = recipe["strMeasure" + i];
+
+        if (ing && ing.trim() !== "") {
+          ingredientsList += `<li>${measure} ${ing}</li>`;
+        }
+      }
+
+      result.innerHTML += `
+        <div class="recipe-card">
+          <img src="${recipe.strMealThumb}" width="100%" style="border-radius:15px;">
+          <h2>${recipe.strMeal}</h2>
+
+          <h3>🧂 Ingredients</h3>
+          <ul>${ingredientsList}</ul>
+
+          <h3>👩‍🍳 How to Cook</h3>
+          <p>${recipe.strInstructions}</p>
+        </div>
+      `;
+    }
+
+  } catch (error) {
+    result.innerHTML = "<p>❌ Something went wrong. Please try again.</p>";
+    console.error(error);
   }
-}
+} 
