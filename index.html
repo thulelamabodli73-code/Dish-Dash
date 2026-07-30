@@ -24,3 +24,45 @@ Start Cooking
 
 </body>
 </html>
+<input id="ingredients" placeholder="Enter ingredients (example: egg, bread)">
+<button onclick="findRecipe()">Find Recipe 🍽️</button>
+
+<div id="results"></div>
+
+<script>
+const recipes = [
+{
+name: "Egg Sandwich",
+ingredients: ["egg", "bread"],
+steps: "Cook egg and place it between bread."
+},
+{
+name: "Cheese Toast",
+ingredients: ["bread", "cheese"],
+steps: "Add cheese to bread and toast until melted."
+},
+{
+name: "Pasta",
+ingredients: ["pasta", "tomato"],
+steps: "Cook pasta and add tomato sauce."
+}
+];
+
+function findRecipe(){
+let input = document.getElementById("ingredients").value.toLowerCase();
+let results = document.getElementById("results");
+
+let found = recipes.filter(recipe =>
+recipe.ingredients.some(item => input.includes(item))
+);
+
+if(found.length === 0){
+results.innerHTML = "😢 No recipes found";
+} else {
+results.innerHTML = found.map(recipe =>
+`<h2>${recipe.name}</h2>
+<p>${recipe.steps}</p>`
+).join("");
+}
+}
+</script>
